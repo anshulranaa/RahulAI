@@ -20,6 +20,59 @@ class Agent:
         self.initialize_chat_history()
 
         self.tool_names = {}
+
+        self.prompt = """
+                    You are an intelligent, dynamic agent capable of handling tasks by invoking and executing tools. Follow these guidelines:
+
+                    1. When given a task, determine the necessary tools to complete it.
+                    2. Dynamically create, update, or use existing tools based on the task's requirements.
+                    3. Always rely on the output (observation) from the tools to generate your final answer.
+                    4. If a tool's output is ambiguous or incomplete, use reasoning to decide the next step or tool to use.
+
+                    ---
+
+                    ### Formatting:
+                    - **Thought**: Clearly explain your reasoning at each step.
+                    - **Action**: Specify the tool to use and its input in JSON format.
+                    - **Observation**: Record the tool's output after execution.
+                    - **Final Answer**: Use the observation to respond to the user's query.
+
+                    ---
+
+                    ### Examples:
+
+                    **Example 1:**  
+                    **User**: Add 2 and 3  
+                    **Thought**: I need to use the "Add_Tool" to compute the result of 2 + 3.  
+                    **Action**: { "tool": "Add_Tool", "input": { "numbers": [2, 3] } }  
+                    **Observation**: 5  
+                    **Final Answer**: The result of adding 2 and 3 is 5.
+
+                    ---
+
+                    **Example 2:**  
+                    **User**: Scrape xyz.com and save its content in a file.  
+                    **Thought**: This requires two steps:  
+                    1. Use a scraping tool to extract the content from xyz.com.  
+                    2. Use a file-writing tool to save the content to a file.  
+                    **Action**: { "tool": "Scrape_Tool", "input": { "url": "xyz.com" } }  
+                    **Observation**: "Website content extracted successfully."  
+                    **Thought**: Now I will save this content to a file.  
+                    **Action**: { "tool": "File_Write_Tool", "input": { "content": "Website content", "filename": "output.txt" } }  
+                    **Observation**: "File saved successfully."  
+                    **Final Answer**: The content from xyz.com has been successfully saved to output.txt.
+
+                    ---
+
+                    ### Rules:
+                    - Do not assume results. Always verify with tools and observations.
+                    - If a tool doesn't exist for the task, dynamically create one (if capable) or suggest a solution.
+
+                    ---
+
+                    Now, proceed with the user's input.
+                    """
+
         
         # Initialize base tools and models
         self.tools = [decomp, toolGen] + updatedTools
@@ -59,8 +112,10 @@ class Agent:
             verbose=True,
             max_iterations=3,
             early_stopping_method='generate',
-            memory=self.memory
+            memory=self.memory,
+            agent_prompt = self.prompt
         )
+    
         
     def add_tool(self, tool: Tool):
         """Add a new tool and reinitialize the agent."""
@@ -88,7 +143,7 @@ class Agent:
         """Get list of current tool names."""
         return list(self.tool_names.keys())
         
-    def save_chat_history(self, user_input: str, agent_response: str):
+    def save_chat_history(self, user_input: str, agent_response: dict):
         """Save conversation turn to chat history."""
         if os.path.exists(self.CHAT_HISTORY_FILE):
             with open(self.CHAT_HISTORY_FILE, "r") as f:
@@ -96,13 +151,16 @@ class Agent:
         else:
             chat_history = []
             
+        # Append the latest conversation
         chat_history.append({
             "user": user_input,
             "agent": agent_response
         })
         
+        # Save back to file
         with open(self.CHAT_HISTORY_FILE, "w") as f:
             json.dump(chat_history, f, indent=4)
+
             
     def process_input(self, user_input: str):
         """Process user input and handle dynamic tool updates."""
@@ -112,8 +170,23 @@ class Agent:
             
         # Normal agent interaction
         agent_response = self.agent(user_input)
-        self.save_chat_history(user_input, agent_response)
+        
+        # Extract observation and other relevant details
+        thought = agent_response.get("thought", "No thought recorded")
+        action = agent_response.get("action", "No action recorded")
+        observation = agent_response.get("observation", "No observation recorded")
+        final_answer = agent_response.get("output", "No final answer")
+        
+        # Save chat history with extracted details
+        self.save_chat_history(user_input, {
+            "thought": thought,
+            "action": action,
+            "observation": observation,
+            "final_answer": final_answer
+        })
+        
         return agent_response
+
 
 def main():
     agent = Agent()

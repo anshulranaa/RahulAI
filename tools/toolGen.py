@@ -129,6 +129,7 @@
 # # TODO : Need to parse the python code given by the LLM and store them in addOnTools.py
 
 import os
+import re
 from langchain_core.prompts import PromptTemplate
 from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser
@@ -175,16 +176,45 @@ def save_to_chat_history(user_input, tool_output):
     with open(CHAT_HISTORY_FILE, "w") as f:
         json.dump(chat_history, f, indent=4)
 
-def append_to_addon_tools(code: str):
-    """Append the generated Python code to addOnTools.py."""
-    if not os.path.exists(ADDON_TOOLS_FILE):
-        # If the file doesn't exist, create it and write initial imports
-        with open(ADDON_TOOLS_FILE, "w") as f:
-            f.write("from langchain.agents import Tool\n\n")
-            f.write("# Dynamically added tools\n\n")
+def extract_and_save_python_code(input_text, output_file="./tools/addOnTools.py"):
+    """
+    Extract Python code from the text using regex and save it to a file.
+    If no Python-specific block is found, it extracts generic code snippets.
 
-    with open(ADDON_TOOLS_FILE, "a") as f:
-        f.write(f"\n{code}\n")
+    Args:
+    - input_text (str): The text containing Python code or code snippets.
+    - output_file (str): The name of the file where the extracted code will be saved.
+
+    Returns:
+    - str: The extracted Python code or None if no code is found.
+    """
+    # Regex for Python-specific blocks (with language hint)
+    python_block_regex = re.compile(r'```python([\s\S]*?)```')
+
+    # Fallback regex for any generic code block
+    generic_code_block_regex = re.compile(r'```([\s\S]*?)```')
+
+    # Try matching Python-specific blocks first
+    match = python_block_regex.search(input_text)
+    if not match:
+        # Fall back to matching generic code blocks
+        match = generic_code_block_regex.search(input_text)
+
+    if match:
+        python_code = match.group(1).strip()
+
+        # Save the extracted code to a file
+        try:
+            with open(output_file, "w") as file:
+                file.write(python_code)
+            print(f"Python code successfully saved to {output_file}.")
+        except IOError as e:
+            print(f"Error saving to file: {e}")
+
+        return python_code
+    else:
+        print("No Python code block found in the input text.")
+        return None
 
 def toolGenTool(input_text, code_gen: bool = False):
     recent_history = load_recent_history()
@@ -213,18 +243,14 @@ updatedTools.append(tool_name)
 Generate and output the code for all tools needed.
 """,
         input_variables=["input_text", "context"],
-    )
+)
     chain = prompt | llm | StrOutputParser()
     result = chain.invoke({"context": context, "input_text": input_text})
 
     save_to_chat_history(input_text, result)
 
-    # Extract Python code blocks from the LLM's output
-    if "```" in result:
-        code_blocks = result.split("```")
-        python_code = [block for block in code_blocks if block.strip().startswith("def")]
-        for code in python_code:
-            append_to_addon_tools(code)
+    # Store the python code in addOnTools.py
+    extract_and_save_python_code(result)
 
     return result
 
