@@ -1,0 +1,48 @@
+[
+    {
+        "user": "Generate 3 tools: one to print 'hello world', one to print 'hello mohali', one to print 'hello india'",
+        "agent": {
+            "input": "Generate 3 tools: one to print 'hello world', one to print 'hello mohali', one to print 'hello india'",
+            "chat_history": [],
+            "output": "Here is the Python code that generates three tools as per your request:\n```\nimport os\nimport json\nfrom langchain.agents import initialize_agent\n\nfrom langchain_core.prompts import ChatPromptTemplate\nfrom langchain_groq import ChatGroq\nfrom langchain.memory import ConversationBufferWindowMemory\nfrom langchain.agents import Tool\nfrom dotenv import load_dotenv, find_dotenv\n\ndotenv_path = find_dotenv(\"../.env\")\nload_dotenv(dotenv_path)\n\nCHAT_HISTORY_FILE = \"chat_history.json\"\n\n# Ensure chat_history.json is reset at the start of each session\ndef initialize_chat_history():\n    with open(CHAT_HISTORY_FILE, \"w\") as f:\n        json.dump([], f)\n\ninitialize_chat_history()  # Initialize the file at the start\n\n# Tool 1: Print 'hello world'\ndef hello_world_tool(input_text):\n    return \"hello world\"\n\nhello_world = Tool(\n    name='Hello World',\n    func=hello_world_tool,\n    description=\"Prints 'hello world'\"\n)\n\n# Tool 2: Print 'hello mohali'\ndef hello_mohali_tool(input_text):\n    return \"hello mohali\"\n\nhello_mohali = Tool(\n    name='Hello Mohali',\n    func=hello_mohali_tool,\n    description=\"Prints 'hello mohali'\"\n)\n\n# Tool 3: Print 'hello india'\ndef hello_india_tool(input_text):\n    return \"hello india\"\n\nhello_india = Tool(\n    name='Hello India',\n    func=hello_india_tool,\n    description=\"Prints 'hello india'\"\n)\n```\nEach tool is defined as a separate function that takes an input text (although it's not used in this case) and returns the desired output. The `Tool` class is used to create an instance of each tool, specifying its name, function, and description.\n\nYou can save this code in a separate `.py` file, and it will be self-contained with all the necessary imports and helper functions."
+        }
+    },
+    {
+        "user": "Generate 3 tools , one to print hello world, one to print hello mohali, one to print hello india",
+        "agent": {
+            "input": "Generate 3 tools , one to print hello world, one to print hello mohali, one to print hello india",
+            "chat_history": [],
+            "output": "Three tools have been generated: one to print 'hello world', one to print 'hello mohali', and one to print 'hello india'."
+        }
+    },
+    {
+        "user": "Generate tools to print 'hello world', 'hello mohali', and 'hello india'",
+        "agent": {
+            "input": "Generate tools to print 'hello world', 'hello mohali', and 'hello india'",
+            "chat_history": [
+                {
+                    "user": "Generate 3 tools: one to print 'hello world', one to print 'hello mohali', one to print 'hello india'",
+                    "agent": {
+                        "input": "Generate 3 tools: one to print 'hello world', one to print 'hello mohali', one to print 'hello india'",
+                        "chat_history": [],
+                        "output": "Here is the Python code that generates three tools as per your request:\n```\nimport os\nimport json\nfrom langchain.agents import initialize_agent\n\nfrom langchain_core.prompts import ChatPromptTemplate\nfrom langchain_groq import ChatGroq\nfrom langchain.memory import ConversationBufferWindowMemory\nfrom langchain.agents import Tool\nfrom dotenv import load_dotenv, find_dotenv\n\ndotenv_path = find_dotenv(\"../.env\")\nload_dotenv(dotenv_path)\n\nCHAT_HISTORY_FILE = \"chat_history.json\"\n\n# Ensure chat_history.json is reset at the start of each session\ndef initialize_chat_history():\n    with open(CHAT_HISTORY_FILE, \"w\") as f:\n        json.dump([], f)\n\ninitialize_chat_history()  # Initialize the file at the start\n\n# Tool 1: Print 'hello world'\ndef hello_world_tool(input_text):\n    return \"hello world\"\n\nhello_world = Tool(\n    name='Hello World',\n    func=hello_world_tool,\n    description=\"Prints 'hello world'\"\n)\n\n# Tool 2: Print 'hello mohali'\ndef hello_mohali_tool(input_text):\n    return \"hello mohali\"\n\nhello_mohali = Tool(\n    name='Hello Mohali',\n    func=hello_mohali_tool,\n    description=\"Prints 'hello mohali'\"\n)\n\n# Tool 3: Print 'hello india'\ndef hello_india_tool(input_text):\n    return \"hello india\"\n\nhello_india = Tool(\n    name='Hello India',\n    func=hello_india_tool,\n    description=\"Prints 'hello india'\"\n)\n```\nEach tool is defined as a separate function that takes an input text (although it's not used in this case) and returns the desired output. The `Tool` class is used to create an instance of each tool, specifying its name, function, and description.\n\nYou can save this code in a separate `.py` file, and it will be self-contained with all the necessary imports and helper functions."
+                    }
+                },
+                {
+                    "user": "Generate 3 tools , one to print hello world, one to print hello mohali, one to print hello india",
+                    "agent": {
+                        "input": "Generate 3 tools , one to print hello world, one to print hello mohali, one to print hello india",
+                        "chat_history": [],
+                        "output": "Three tools have been generated: one to print 'hello world', one to print 'hello mohali', and one to print 'hello india'."
+                    }
+                }
+            ],
+            "output": "Here is the Python code that generates three tools as per your request:\n```\nimport os\nimport json\nfrom langchain.agents import initialize_agent\n\nfrom langchain_core.prompts import ChatPromptTemplate\nfrom langchain_groq import ChatGroq\nfrom langchain.memory import ConversationBufferWindowMemory\nfrom langchain.agents import Tool\nfrom dotenv import load_dotenv, find_dotenv\n\ndotenv_path = find_dotenv(\"../.env\")\nload_dotenv(dotenv_path)\n\nCHAT_HISTORY_FILE = \"chat_history.json\"\n\n# Ensure chat_history.json is reset at the start of each session\ndef initialize_chat_history():\n    with open(CHAT_HISTORY_FILE, \"w\") as f:\n        json.dump([], f)\n\ninitialize_chat_history()  # Initialize the file at the start\n\n# Tool 1: Print 'hello world'\ndef hello_world_tool(input_text):\n    return \"hello world\"\n\nhello_world = Tool(\n    name='Hello World',\n    func=hello_world_tool,\n    description=\"Prints 'hello world'\"\n)\n\n# Tool 2: Print 'hello mohali'\ndef hello_mohali_tool(input_text):\n    return \"hello mohali\"\n\nhello_mohali = Tool(\n    name='Hello Mohali',\n    func=hello_mohali_tool,\n    description=\"Prints 'hello mohali'\"\n)\n\n# Tool 3: Print 'hello india'\ndef hello_india_tool(input_text):\n    return \"hello india\"\n\nhello_india = Tool(\n    name='Hello India',\n    func=hello_india_tool,\n    description=\"Prints 'hello india'\"\n)\n```\nEach tool is defined as a separate function that takes an input text (although it's not used in this case) and returns the desired output. The `Tool` class is used to create an instance of each tool, specifying its name, function, and description.\n\nYou can save this code in a separate `.py` file, and it will be self-contained with all the necessary imports and helper functions."
+        }
+    },
+    {
+        "user": "what all tools do you currently have",
+        "agent": {
+            "input": "what all tools do you currently have",
+            "chat_history": [
+                
