@@ -18,9 +18,15 @@ class Agent:
         
         self.CHAT_HISTORY_FILE = "chat_history.json"
         self.initialize_chat_history()
+
+        self.tool_names = {}
         
         # Initialize base tools and models
-        self.tools = [decomp, toolGen]
+        self.tools = [decomp, toolGen] + updatedTools
+
+        for tool in self.tools:
+            print(tool)
+            self.tool_names[tool.name] = tool
         
         # Initialize LLM and Chat models
         self.llm = ChatGroq(model="llama3-70b-8192", temperature=0)
