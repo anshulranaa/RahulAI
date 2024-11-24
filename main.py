@@ -19,58 +19,81 @@ class Agent:
         self.CHAT_HISTORY_FILE = "chat_history.json"
         self.initialize_chat_history()
 
-        self.tool_names = {}
-
         self.prompt = """
-                    You are an intelligent, dynamic agent capable of handling tasks by invoking and executing tools. Follow these guidelines:
+You are an intelligent, dynamic agent called RAHUL. You are capable of handling tasks by invoking and executing tools. Follow these guidelines:
 
-                    1. When given a task, determine the necessary tools to complete it.
-                    2. Dynamically create, update, or use existing tools based on the task's requirements.
-                    3. Always rely on the output (observation) from the tools to generate your final answer.
-                    4. If a tool's output is ambiguous or incomplete, use reasoning to decide the next step or tool to use.
+---
 
-                    ---
+### Guidelines:
+1. **Task Analysis**: When given a task, first invoke the **Breakdown tool** to decompose the task into logical subtasks, including inputs, outputs, and processing steps.
+2. **Tool Generation and Usage**:
+   - After obtaining the task breakdown, invoke the **ToolGen tool** to create the necessary tools for the subtasks.
+   - Dynamically use or update the tools as required for the task's execution.
+   - Execute each tool individually, ensuring the output from one step informs the next.
+3. **Observation-Driven Execution**:
+   - Always rely on the tool's output (observation) to proceed to the next step or generate the final answer.
+   - If a tool's output is ambiguous or incomplete, use reasoning to decide the next step or tool to invoke.
 
-                    ### Formatting:
-                    - **Thought**: Clearly explain your reasoning at each step.
-                    - **Action**: Specify the tool to use and its input in JSON format.
-                    - **Observation**: Record the tool's output after execution.
-                    - **Final Answer**: Use the observation to respond to the user's query.
+---
 
-                    ---
+### Formatting:
+- **Thought**: Clearly explain your reasoning at each step.
+- **Action**: Specify the tool to use and its input in JSON format.
+- **Observation**: Record the tool's output after execution.
+- **Final Answer**: Use the observation(s) to provide a clear and complete response to the user's query.
 
-                    ### Examples:
+---
 
-                    **Example 1:**  
-                    **User**: Add 2 and 3  
-                    **Thought**: I need to use the "Add_Tool" to compute the result of 2 + 3.  
-                    **Action**: { "tool": "Add_Tool", "input": { "numbers": [2, 3] } }  
-                    **Observation**: 5  
-                    **Final Answer**: The result of adding 2 and 3 is 5.
+### Examples:
 
-                    ---
+**Example 1:**  
+**User**: Add 2 and 3  
+**Thought**: I need to break this task into subtasks first.  
+**Action**: { "tool": "Breakdown", "input": { "task": "Add 2 and 3" } }  
+**Observation**: { "steps": [ { "tool": "Add_Tool", "input": { "numbers": [2, 3] }, "output": "5" } ] }  
+**Thought**: Based on the breakdown, I need to use the Add_Tool.  
+**Action**: { "tool": "Add_Tool", "input": { "numbers": [2, 3] } }  
+**Observation**: 5  
+**Final Answer**: The result of adding 2 and 3 is 5.
 
-                    **Example 2:**  
-                    **User**: Scrape xyz.com and save its content in a file.  
-                    **Thought**: This requires two steps:  
-                    1. Use a scraping tool to extract the content from xyz.com.  
-                    2. Use a file-writing tool to save the content to a file.  
-                    **Action**: { "tool": "Scrape_Tool", "input": { "url": "xyz.com" } }  
-                    **Observation**: "Website content extracted successfully."  
-                    **Thought**: Now I will save this content to a file.  
-                    **Action**: { "tool": "File_Write_Tool", "input": { "content": "Website content", "filename": "output.txt" } }  
-                    **Observation**: "File saved successfully."  
-                    **Final Answer**: The content from xyz.com has been successfully saved to output.txt.
+---
 
-                    ---
+**Example 2:**  
+**User**: Scrape xyz.com and save its content in a file.  
+**Thought**: I need to break this task into subtasks first.  
+**Action**: { "tool": "Breakdown", "input": { "task": "Scrape xyz.com and save its content in a file" } }  
+**Observation**: { "steps": [ 
+  { "tool": "Scrape_Tool", "input": { "url": "xyz.com" }, "output": "Website content" },
+  { "tool": "File_Write_Tool", "input": { "content": "Website content", "filename": "output.txt" }, "output": "File saved successfully" } 
+] }  
+**Thought**: I will invoke ToolGen to generate these tools first.  
+**Action**: { "tool": "ToolGen", "input": { "tools": ["Scrape_Tool", "File_Write_Tool"] } }  
+**Observation**: Tools generated successfully.  
+**Thought**: Now, I can execute the tasks in order.  
+**Action**: { "tool": "Scrape_Tool", "input": { "url": "xyz.com" } }  
+**Observation**: "Website content extracted successfully."  
+**Thought**: Next, I will save this content to a file.  
+**Action**: { "tool": "File_Write_Tool", "input": { "content": "Website content", "filename": "output.txt" } }  
+**Observation**: "File saved successfully."  
+**Final Answer**: The content from xyz.com has been successfully saved to output.txt.
 
-                    ### Rules:
-                    - Do not assume results. Always verify with tools and observations.
-                    - If a tool doesn't exist for the task, dynamically create one (if capable) or suggest a solution.
+---
 
-                    ---
+### Rules:
+1. **Mandatory Task Breakdown**:
+   - Always invoke the **Breakdown tool** first when a new task is presented.
+2. **Dynamic Tool Generation**:
+   - After the breakdown, invoke the **ToolGen tool** to generate any required tools not already available.
+3. **Step-by-Step Execution**:
+   - Execute each tool independently, following the breakdown's logical sequence.
+   - Always use the observation from one step to inform the next.
+4. **Error Handling**:
+   - If any tool or step fails, revisit the breakdown or tool generation process to resolve the issue.
 
-                    Now, proceed with the user's input.
+---
+
+Now, proceed with the user's input.
+Keep in mind when the user presents with a task. The first tool to be executed should be the DECOMPOSER TOOL and after the TOOLGEN tool has been called , it is to check if any libraries are needed to be installed. Keep in mind just to pass the library names to be installed to the INSTALL_LIBRARIES FUNCTION, after that it is to invoke the RUN tool.
                     """
 
         
@@ -78,9 +101,7 @@ class Agent:
         self.tools = [decomp, toolGen] + updatedTools
 
         for tool in self.tools:
-            print(tool)
-            self.tool_names[tool.name] = tool
-        
+            print(tool)        
         # Initialize LLM and Chat models
         self.llm = ChatGroq(model="llama3-70b-8192", temperature=0)
         self.chat = ChatGroq(
@@ -119,25 +140,9 @@ class Agent:
         
     def add_tool(self, tool: Tool):
         """Add a new tool and reinitialize the agent."""
-        if tool.name not in self.tool_names:
-
-            self.tools.extend(updatedTools)
-            self.tool_names[tool.name] = tool
-            # Reinitialize agent with updated tools
-            self.agent = self._create_agent()
-            return True
-        return False
+        self.agent = self._create_agent()
+        return True
         
-    def remove_tool(self, tool_name: str):
-        """Remove a tool by name and reinitialize the agent."""
-        if tool_name in self.tool_names:
-            tool = self.tool_names[tool_name]
-            self.tools.remove(tool)
-            del self.tool_names[tool_name]
-            # Reinitialize agent with updated tools
-            self.agent = self._create_agent()
-            return True
-        return False
         
     def get_tools(self) -> List[str]:
         """Get list of current tool names."""
@@ -161,23 +166,40 @@ class Agent:
         with open(self.CHAT_HISTORY_FILE, "w") as f:
             json.dump(chat_history, f, indent=4)
 
-            
+    def update_tools(self, new_tools: List[Tool]):
+        """Update the active tools list and reinitialize the agent."""
+        # Store new tools in generated_tools dictionary
+        for tool in new_tools:
+            self.generated_tools[tool.name] = tool
+        
+        # Recreate active_tools list with base tools and all generated tools
+        self.active_tools = self.base_tools.copy()
+        self.active_tools.extend(self.generated_tools.values())
+        
+        # Reinitialize the agent with updated tools
+        self.agent = self._create_agent()
+        return True     
     def process_input(self, user_input: str):
         """Process user input and handle dynamic tool updates."""
-        # Check if input is a special command for tool management
-        if user_input.startswith("!tools"):
-            return f"Current tools: {', '.join(self.get_tools())}"
-            
-        # Normal agent interaction
+        # Get initial response
         agent_response = self.agent(user_input)
         
-        # Extract observation and other relevant details
+        # Check if the response contains new tools from ToolGen
+        if isinstance(agent_response, dict) and 'tools' in agent_response:
+            new_tools = agent_response['tools']
+            if new_tools:
+                # Update tools and reinitialize agent
+                self.update_tools(new_tools)
+                # Re-run the query with updated tools
+                agent_response = self.agent(user_input)
+        
+        # Extract details for chat history
         thought = agent_response.get("thought", "No thought recorded")
         action = agent_response.get("action", "No action recorded")
         observation = agent_response.get("observation", "No observation recorded")
         final_answer = agent_response.get("output", "No final answer")
         
-        # Save chat history with extracted details
+        # Save chat history
         self.save_chat_history(user_input, {
             "thought": thought,
             "action": action,

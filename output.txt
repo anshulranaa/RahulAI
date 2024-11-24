@@ -1,0 +1,7 @@
+tools
+chat_history.json
+README.md
+.env
+.git
+main.py
+output.txt
